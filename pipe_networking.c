@@ -15,6 +15,10 @@ int server_handshake(int *to_client) {
   int up = open(ACK, O_RDONLY , 0666);
   char received[10];
   read(up, received, 8);
+  if(!fork()){
+    execlp("rm", "rm", ACK, NULL);
+
+  }
   int down = open(received, O_WRONLY, 0666);
   write(down, "confirm", 8);
   read(up, received, 8);
@@ -47,6 +51,10 @@ int client_handshake(int *to_server) {
   char received[10];
   read(down, received, 8);
   if(!strcmp(received, "confirm")){
+    if(!fork()){
+      execlp("rm", "rm", "bonjour", NULL);
+    }
+    
     write(up, "confirm", 8);
     *to_server = up;
     return down;
