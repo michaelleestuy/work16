@@ -1,5 +1,5 @@
 #include "pipe_networking.h"
-
+#include <string.h>
 
 int main() {
 
@@ -13,6 +13,7 @@ int main() {
     char s[256];
     printf("Input a string (all letters, all lowercase): ");
     fgets(s,256,stdin);
+    s[strlen(s)-1]=0;
     //printf("input read in to s: [%s]\n",s);
     write(to_server,s,256);
     //printf("wrote text\n");
