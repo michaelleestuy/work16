@@ -1,5 +1,5 @@
 #include "pipe_networking.h"
-
+#include <string.h>
 
 /*=========================
   server_handshake
@@ -13,8 +13,9 @@
 int server_handshake(int *to_client) {
   mkfifo(ACK, 0666);
   int up = open(ACK, O_RDONLY , 0666);
-  char received[10];
-  read(up, received, 8);
+  char received[16];
+  read(up, received, 16);
+  printf("[server] received: [%s]\n",received);
   if(!fork()){
     execlp("rm", "rm", ACK, NULL);
 
@@ -23,7 +24,7 @@ int server_handshake(int *to_client) {
   write(down, "confirm", 8);
   read(up, received, 8);
   if(!strcmp(received, "confirm")){
-    printf("handshake complete\n");
+    printf("[server] handshake complete\n");
     *to_client = down;
     return up;
   }
@@ -44,15 +45,20 @@ int server_handshake(int *to_client) {
   returns the file descriptor for the downstream pipe.
   =========================*/
 int client_handshake(int *to_server) {
-  int up = open(ACK, O_WRONLY, 0666);  
-  mkfifo("bonjour", 0666);
-  write(up, "bonjour", 8);
-  int down = open("bonjour", O_RDONLY, 0666);
-  char received[10];
-  read(down, received, 8);
+  int up = open(ACK, O_WRONLY, 0666);
+  char received[16];
+  sprintf(received,"%d",getpid());
+  char name[16];
+  strcpy(name,received);
+  mkfifo(received, 0666);
+  write(up, received, 16);
+  int down = open(received, O_RDONLY, 0666);
+  //char received[10];
+  read(down, received, 16);
+  printf("[client] reading: [%s]\n",received);
   if(!strcmp(received, "confirm")){
     if(!fork()){
-      execlp("rm", "rm", "bonjour", NULL);
+      execlp("rm", "rm", name, NULL);
     }
     
     write(up, "confirm", 8);
